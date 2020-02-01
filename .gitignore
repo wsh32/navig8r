@@ -318,3 +318,5 @@ tags
 .vim
 
 # End of https://www.gitignore.io/api/c,vim,c++,java,python,jetbrains
+
+.idea/*
