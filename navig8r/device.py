@@ -4,9 +4,9 @@ import time
 
 class DeviceProcess:
     def __init__(self, serial_queue, port='/dev/ttyUSB0', baudrate=9600, send_rate_s=0.25):
+        self._ser = serial.Serial(port, baudrate)
         self.serial_queue = serial_queue
         self.ser_data = (0, 0, 0)
-        self._ser = serial.Serial(port, baudrate)
         # self._ser = FakeSerialConsole()
         self.send_rate_s = send_rate_s
         self.process = Process(target=self.run)
