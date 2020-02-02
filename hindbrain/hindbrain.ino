@@ -4,7 +4,7 @@
  * Runs hardware interfaces
  * Takes serial commands from the fore brain
  * 
- */sd
+ */
 
 #include <Adafruit_NeoPixel.h>
 
@@ -37,12 +37,21 @@ bool flash_state = false;
 #define PIXELS            16
 #define NEOPIXEL_NEAR     100  // ms
 #define NEOPIXEL_FAR      500  // ms
+
+#define ON_COLOR_R        50
+#define ON_COLOR_G        50
+#define ON_COLOR_B        0
+#define OFF_COLOR_R       7
+#define OFF_COLOR_G       5
+#define OFF_COLOR_B       7
+
 Adafruit_NeoPixel neopixel(PIXELS, NEOPIXEL_PIN, NEO_GRB+NEO_KHZ800);
 
 short pixel_index = 0;
 unsigned long last_pixel_pulse = 0;
 
 void setup() {
+  Serial.begin(9600);
   // Hardware setup
   pinMode(FLASH_PIN_LEFT, OUTPUT);
   pinMode(FLASH_PIN_RIGHT, OUTPUT);
@@ -57,42 +66,46 @@ void loop() {
 
   // Non blocking functions
   updateFlash();
-  updateNeoPixels;
+  updateNeoPixels();
+  delay(10);
+  digitalWrite(13, direction==LEFT);
 }
 
 void readForeBrain() {
-  // TODO jackie's code here
   if (Serial.available() > 0) {
     // read the incoming byte:
-    byte1 = Serial.read();
+    byte byte1 = Serial.read();
 
     // say what you got:
-    Serial.print("Byte1: ");
-    Serial.println(byte1, BIN);
+//    Serial.print("Byte1: ");
+//    Serial.println(byte1, BIN);
 
     if (byte1 == 36){
       // byte2
       while (Serial.available() == 0){}
-      byte2 = Serial.read();
+      int byte2 = Serial.read();
       
-      int left = byte2>>7;
-      if (left == 1):
-        direction = 1;
+      int left = byte2 >> 7;
+      if (left == 1) {
+        direction = LEFT;
+      }
       
-      int right = byte2>>6 & 01;
-      if (right == 1):
-        direction = 2;
+      int right = byte2 >> 6 & 1;
+      if (right == 1) {
+        direction = RIGHT;
+      }
 
-      int flash = byte2>>5 & 001;
-      if (flash == 1):
+      int flash = byte2 >> 5 & 1;
+      if (flash == 1) {
         enable_flash = true;
-      Serial.print("flash: ");
-      Serial.println(enable_flash);
+      }
+//      Serial.print("flash: ");
+//      Serial.println(enable_flash);
 
       // byte3
       while (Serial.available() == 0){}
       
-      byte3 = Serial.read();
+      byte byte3 = Serial.read();
       distance = (byte2 & 31) + byte3;
     }
   }
@@ -134,11 +147,31 @@ void updateNeoPixels() {
     neopixel_time = NEOPIXEL_FAR;
   }
   if (neopixel_time != 0 && current_time > last_pixel_pulse + neopixel_time) {
-    pixel_index = (pixel_index + 1) & (PIXELS / 2);
+    pixel_index = (pixel_index + 1) & (PIXELS / 2) + 1;
     last_pixel_pulse = current_time;
   }
   
   if (direction == LEFT) {
-    
+    for(int i = 0; i < PIXELS; i++) {
+      if(i > PIXELS / 2 - 1 - pixel_index && i < PIXELS / 2 - 1) {
+        neopixel.setPixelColor(i, neopixel.Color(ON_COLOR_R, ON_COLOR_G, ON_COLOR_B));
+      } else {
+        neopixel.setPixelColor(i, neopixel.Color(OFF_COLOR_R, OFF_COLOR_G, OFF_COLOR_B));
+      }
+    }
+  } else if (direction == RIGHT) {
+    for(int i = 0; i < PIXELS; i++) {
+      if(i < PIXELS / 2 + pixel_index && i >= PIXELS / 2) {
+        neopixel.setPixelColor(i, neopixel.Color(ON_COLOR_R, ON_COLOR_G, ON_COLOR_B));
+      } else {
+        neopixel.setPixelColor(i, neopixel.Color(OFF_COLOR_R, OFF_COLOR_G, OFF_COLOR_B));
+      }
+    }
+  } else {
+    for(int i = 0; i < PIXELS; i++) {
+      neopixel.setPixelColor(i, neopixel.Color(OFF_COLOR_R, OFF_COLOR_G, OFF_COLOR_B));
+    }
   }
+
+  neopixel.show();
 }
