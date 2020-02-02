@@ -122,7 +122,7 @@ void updateFlash() {
     last_flash_pulse = current_time;
   } else if (distance == FAR) {
     flash_state = true;
-  } else {
+  } else if (distance == OUT_OF_RANGE) {
     flash_state = false;
   }
 
