@@ -8,8 +8,8 @@ class DeviceProcess:
         # self._ser = FakeSerialConsole()
         self.serial_queue = serial_queue
         self.direction = 0
-        self.flash_enable = 0
-        self.distance = 0
+        self.flash_enable = 1
+        self.distance = 2
         self.send_rate_s = send_rate_s
         self.process = Process(target=self.run)
         self.process.start()
