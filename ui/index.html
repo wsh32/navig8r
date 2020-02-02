@@ -32,6 +32,7 @@
         <h1>Navig8r</h1>
         <h5 class="light">navigation for bikes made simple</h5>
 
+        <!--
     <div id="googleMap" style="width:100%;height:400px;"></div>
     <br>
     <br>
@@ -47,6 +48,7 @@
     </script>
 
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDAhbz5d06eHDB7w0Stj8jyMbNfbeOcxZs&callback=myMap"></script>
+    -->
     <div class="container">
 
     </div>
@@ -81,22 +83,22 @@
     <script>
     function LeftTurn() {
       let xhttp = new XMLHttpRequest();
-      xhttp.open("GET", "http://192.168.0.100/1/z/z", true);
+      xhttp.open("GET", "http://192.168.0.100:8000/1/z/z", true);
       xhttp.send();
     }
     function RightTurn() {
       let xhttp = new XMLHttpRequest();
-      xhttp.open("GET", "http://192.168.0.100/2/z/z", true);
+      xhttp.open("GET", "http://192.168.0.100:8000/2/z/z", true);
       xhttp.send();
     }
     function Near() {
       let xhttp = new XMLHttpRequest();
-      xhttp.open("GET", "http://192.168.0.100/z/z/1", true);
+      xhttp.open("GET", "http://192.168.0.100:8000/z/z/1", true);
       xhttp.send();
     }
     function Far() {
       let xhttp = new XMLHttpRequest();
-      xhttp.open("GET", "http://192.168.0.100/z/z/2", true);
+      xhttp.open("GET", "http://192.168.0.100:8000/z/z/2", true);
       xhttp.send();
     }
     function change() {
