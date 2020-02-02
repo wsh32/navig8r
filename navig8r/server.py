@@ -25,7 +25,7 @@ def make_nav_handler(serial_queue):
                 self.queue.put(processed)
         def process_path(self, path):
             path_data = path.split('/')
-            if len(path_data) != 4:
+            if len(path_data) < 4:
                 return None
             try:
                 direction = int(path_data[1])
