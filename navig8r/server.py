@@ -1,4 +1,4 @@
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, BaseHTTPRequestHandler, SimpleHTTPRequestHandler
 from multiprocessing import Process, Queue, Event
 
 class Server:
@@ -19,6 +19,7 @@ def make_nav_handler(serial_queue):
             super(NavRequestHandler, self).__init__(*args, **kwargs)
         def do_GET(self):
             self.send_response(200)
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             processed = self.process_path(self.path)
             if processed:
