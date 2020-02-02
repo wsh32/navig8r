@@ -44,8 +44,8 @@ unsigned long last_pixel_pulse = 0;
 
 void setup() {
   // Hardware setup
-  pinMode(FLASH_PIN_LEFT);
-  pinMode(FLASH_PIN_RIGHT);
+  pinMode(FLASH_PIN_LEFT, OUTPUT);
+  pinMode(FLASH_PIN_RIGHT, OUTPUT);
 
   // Neopixel initialization
   neopixel.begin();
@@ -84,16 +84,30 @@ void updateFlash() {
 
   if (distance <= FAR && enable_flash) {
     if (direction == LEFT) {
-      digitalWrite(FLASH_LEFT, flash_state);
-      digitalWrite(FLASH_RIGHT, false);
+      digitalWrite(FLASH_PIN_LEFT, flash_state);
+      digitalWrite(FLASH_PIN_RIGHT, false);
     } else if (direction == RIGHT) {
-      digitalWrite(FLASH_LEFT, false);
-      digitalWrite(FLASH_RIGHT, flash_state);
+      digitalWrite(FLASH_PIN_LEFT, false);
+      digitalWrite(FLASH_PIN_RIGHT, flash_state);
     }
   }
 }
 
 void updateNeoPixels() {
   // Run chase pattern in specified direction and frequency
+  unsigned long current_time = millis();
+  int neopixel_time = 0;
+  if (distance <= FAR) {
+    neopixel_time = NEOPIXEL_NEAR;
+  } else if (distance <= NEAR) {
+    neopixel_time = NEOPIXEL_FAR;
+  }
+  if (neopixel_time != 0 && current_time > last_pixel_pulse + neopixel_time) {
+    pixel_index = (pixel_index + 1) & (PIXELS / 2);
+    last_pixel_pulse = current_time;
+  }
   
+  if (direction == LEFT) {
+    
+  }
 }
