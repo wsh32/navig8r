@@ -4,7 +4,7 @@
  * Runs hardware interfaces
  * Takes serial commands from the fore brain
  * 
- */
+ */sd
 
 #include <Adafruit_NeoPixel.h>
 
@@ -62,8 +62,39 @@ void loop() {
 
 void readForeBrain() {
   // TODO jackie's code here
-  if(Serial.available()) {
-    // Serial data sent at a non-discriminate rate
+  if (Serial.available() > 0) {
+    // read the incoming byte:
+    byte1 = Serial.read();
+
+    // say what you got:
+    Serial.print("Byte1: ");
+    Serial.println(byte1, BIN);
+
+    if (byte1 == 36){
+      // byte2
+      while (Serial.available() == 0){}
+      byte2 = Serial.read();
+      
+      int left = byte2>>7;
+      if (left == 1):
+        direction = 1;
+      
+      int right = byte2>>6 & 01;
+      if (right == 1):
+        direction = 2;
+
+      int flash = byte2>>5 & 001;
+      if (flash == 1):
+        enable_flash = true;
+      Serial.print("flash: ");
+      Serial.println(enable_flash);
+
+      // byte3
+      while (Serial.available() == 0){}
+      
+      byte3 = Serial.read();
+      distance = (byte2 & 31) + byte3;
+    }
   }
 }
 
