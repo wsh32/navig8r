@@ -69,6 +69,7 @@ void loop() {
   updateNeoPixels();
   delay(10);
   digitalWrite(13, direction == LEFT);
+  Serial.println(distance);
 }
 
 void readForeBrain() {
@@ -117,16 +118,18 @@ void readForeBrain() {
 void updateFlash() {
   // Flash the specified flashlight at specified frequency
   unsigned long current_time = millis();
-  if (distance == NEAR && current_time > last_flash_pulse + FLASH_MS) {
-    flash_state = !flash_state;
-    last_flash_pulse = current_time;
+  if (distance == NEAR) {
+    if (current_time > last_flash_pulse + FLASH_MS) {
+      flash_state = !flash_state;
+      last_flash_pulse = current_time;
+    }
   } else if (distance == FAR) {
     flash_state = true;
   } else if (distance == OUT_OF_RANGE) {
     flash_state = false;
   }
 
-  if (!enable_flash) {
+  if (!enable_flash || distance == OUT_OF_RANGE) {
     digitalWrite(FLASH_PIN_LEFT, LOW);
     digitalWrite(FLASH_PIN_RIGHT, LOW);
   } else if (distance != OUT_OF_RANGE) {
@@ -154,7 +157,11 @@ void updateNeoPixels() {
     last_pixel_pulse = current_time;
   }
 
-  if (direction == LEFT) {
+  if (direction == NONE || distance == OUT_OF_RANGE) {
+    for (int i = 0; i < PIXELS; i++) {
+      neopixel.setPixelColor(i, neopixel.Color(OFF_COLOR_R, OFF_COLOR_G, OFF_COLOR_B));
+    }
+  } else if (direction == LEFT) {
     for (int i = 0; i < PIXELS; i++) {
       if ((i >= PIXELS / 2 - (pixel_index+1)) && (i < PIXELS / 2)) {
         neopixel.setPixelColor(i, neopixel.Color(ON_COLOR_R, ON_COLOR_G, ON_COLOR_B));
@@ -169,10 +176,6 @@ void updateNeoPixels() {
       } else {
         neopixel.setPixelColor(i, neopixel.Color(OFF_COLOR_R, OFF_COLOR_G, OFF_COLOR_B));
       }
-    }
-  } else {
-    for (int i = 0; i < PIXELS; i++) {
-      neopixel.setPixelColor(i, neopixel.Color(OFF_COLOR_R, OFF_COLOR_G, OFF_COLOR_B));
     }
   }
 

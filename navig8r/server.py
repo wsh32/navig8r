@@ -40,7 +40,7 @@ def make_nav_handler(serial_queue):
                 distance = int(path_data[3])
             except ValueError:
                 distance = None
-            if direction or flash_enable or distance:
+            if direction is not None or flash_enable is not None or distance is not None:
                 return (direction, flash_enable, distance)
             else:
                 return None
