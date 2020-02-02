@@ -25,10 +25,24 @@ def make_nav_handler(serial_queue):
                 self.queue.put(processed)
         def process_path(self, path):
             path_data = path.split('/')
+            if len(path_data) != 4:
+                return None
             try:
-                return (int(path_data[1]), int(path_data[2]), int(path_data[3]))
-            except:
-                return False
+                direction = int(path_data[1])
+            except ValueError:
+                direction = None
+            try:
+                flash_enable = int(path_data[2])
+            except ValueError:
+                flash_enable = None
+            try:
+                distance = int(path_data[3])
+            except ValueError:
+                distance = None
+            if direction or flash_enable or distance:
+                return (direction, flash_enable, distance)
+            else:
+                return None
     return NavRequestHandler
 
 
