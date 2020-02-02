@@ -28,8 +28,7 @@ int distance = 0;
 
 // Flash definitions
 // Assume 50% duty cycle
-#define FLASH_MS_NEAR     100   // ms
-#define FLASH_MS_FAR      1000 // ms
+#define FLASH_MS          500   // ms
 
 unsigned long last_flash_pulse = 0;
 bool flash_state = false;
@@ -118,15 +117,13 @@ void readForeBrain() {
 void updateFlash() {
   // Flash the specified flashlight at specified frequency
   unsigned long current_time = millis();
-  int flash_time = 0;
-  if (distance == FAR) {
-    flash_time = FLASH_MS_FAR;
-  } else if (distance == NEAR) {
-    flash_time = FLASH_MS_NEAR;
-  }
-  if (flash_time != 0 && current_time > last_flash_pulse + flash_time) {
+  if (distance == NEAR && current_time > last_flash_pulse + FLASH_MS) {
     flash_state = !flash_state;
     last_flash_pulse = current_time;
+  } else if (distance == FAR) {
+    flash_state = true;
+  } else {
+    flash_state = false;
   }
 
   if (!enable_flash) {
