@@ -8,8 +8,8 @@ except ImportError:  # pip <= 9.0.2
 setup(
     name='navig8r',
     version='v0.0-beta',
-    packages=[''],
-    package_dir={'', 'navig8r',},
+    packages=['navig8r'],
+    package_dir={'navig8r',},
     url='https://github.com/wsh32/navig8r',
     license='MIT',
     author='',

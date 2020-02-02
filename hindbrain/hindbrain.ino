@@ -1,10 +1,10 @@
 /*
- * Navig8r Hind brain
- * 
- * Runs hardware interfaces
- * Takes serial commands from the fore brain
- * 
- */
+   Navig8r Hind brain
+
+   Runs hardware interfaces
+   Takes serial commands from the fore brain
+
+*/
 
 #include <Adafruit_NeoPixel.h>
 
@@ -18,8 +18,9 @@
 #define LEFT              1
 #define RIGHT             2
 
-#define NEAR              50  // m
-#define FAR               100 // m
+#define NEAR              1  // m
+#define FAR               2  // m
+#define OUT_OF_RANGE      0
 
 bool enable_flash = false;
 short direction = NONE;
@@ -27,25 +28,25 @@ int distance = 0;
 
 // Flash definitions
 // Assume 50% duty cycle
-#define FLASH_MS_NEAR     2   // ms
-#define FLASH_MS_FAR      0.5 // ms
+#define FLASH_MS_NEAR     100   // ms
+#define FLASH_MS_FAR      1000 // ms
 
 unsigned long last_flash_pulse = 0;
 bool flash_state = false;
 
 // Neopixel definitions
 #define PIXELS            16
-#define NEOPIXEL_NEAR     100  // ms
-#define NEOPIXEL_FAR      500  // ms
+#define NEOPIXEL_NEAR     75  // ms
+#define NEOPIXEL_FAR      200  // ms
 
-#define ON_COLOR_R        50
-#define ON_COLOR_G        50
+#define ON_COLOR_R        25
+#define ON_COLOR_G        25
 #define ON_COLOR_B        0
 #define OFF_COLOR_R       7
 #define OFF_COLOR_G       5
 #define OFF_COLOR_B       7
 
-Adafruit_NeoPixel neopixel(PIXELS, NEOPIXEL_PIN, NEO_GRB+NEO_KHZ800);
+Adafruit_NeoPixel neopixel(PIXELS, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
 short pixel_index = 0;
 unsigned long last_pixel_pulse = 0;
@@ -68,7 +69,7 @@ void loop() {
   updateFlash();
   updateNeoPixels();
   delay(10);
-  digitalWrite(13, direction==LEFT);
+  digitalWrite(13, direction == LEFT);
 }
 
 void readForeBrain() {
@@ -77,36 +78,38 @@ void readForeBrain() {
     byte byte1 = Serial.read();
 
     // say what you got:
-//    Serial.print("Byte1: ");
-//    Serial.println(byte1, BIN);
+    //    Serial.print("Byte1: ");
+    //    Serial.println(byte1, BIN);
 
-    if (byte1 == 36){
+    if (byte1 == 36) {
       // byte2
-      while (Serial.available() == 0){}
+      while (Serial.available() == 0) {}
       int byte2 = Serial.read();
-      
-      int left = byte2 >> 7;
-      if (left == 1) {
+
+      if (byte2 == 90) {
+        direction = NONE;
+      } else if (byte2 == 76) {
         direction = LEFT;
-      }
-      
-      int right = byte2 >> 6 & 1;
-      if (right == 1) {
+      } else if (byte2 == 82) {
         direction = RIGHT;
       }
 
-      int flash = byte2 >> 5 & 1;
-      if (flash == 1) {
-        enable_flash = true;
-      }
-//      Serial.print("flash: ");
-//      Serial.println(enable_flash);
-
       // byte3
-      while (Serial.available() == 0){}
-      
+      while (Serial.available() == 0) {}
+
       byte byte3 = Serial.read();
-      distance = (byte2 & 31) + byte3;
+      enable_flash = (byte3 == 70);
+
+      // byte4
+      while (Serial.available() == 0) {}
+      byte byte4 = Serial.read();
+      if (byte4 == 78) {
+        distance = NEAR;
+      } else if (byte4 == 70) {
+        distance = FAR;
+      } else {
+        distance = OUT_OF_RANGE;
+      }
     }
   }
 }
@@ -116,17 +119,20 @@ void updateFlash() {
   // Flash the specified flashlight at specified frequency
   unsigned long current_time = millis();
   int flash_time = 0;
-  if (distance <= FAR) {
-    flash_time = FLASH_MS_NEAR;
-  } else if (distance <= NEAR) {
+  if (distance == FAR) {
     flash_time = FLASH_MS_FAR;
+  } else if (distance == NEAR) {
+    flash_time = FLASH_MS_NEAR;
   }
   if (flash_time != 0 && current_time > last_flash_pulse + flash_time) {
     flash_state = !flash_state;
     last_flash_pulse = current_time;
   }
 
-  if (distance <= FAR && enable_flash) {
+  if (!enable_flash) {
+    digitalWrite(FLASH_PIN_LEFT, LOW);
+    digitalWrite(FLASH_PIN_RIGHT, LOW);
+  } else if (distance != OUT_OF_RANGE) {
     if (direction == LEFT) {
       digitalWrite(FLASH_PIN_LEFT, flash_state);
       digitalWrite(FLASH_PIN_RIGHT, false);
@@ -141,34 +147,34 @@ void updateNeoPixels() {
   // Run chase pattern in specified direction and frequency
   unsigned long current_time = millis();
   int neopixel_time = 0;
-  if (distance <= FAR) {
-    neopixel_time = NEOPIXEL_NEAR;
-  } else if (distance <= NEAR) {
+  if (distance == FAR) {
     neopixel_time = NEOPIXEL_FAR;
+  } else if (distance == NEAR) {
+    neopixel_time = NEOPIXEL_NEAR;
   }
   if (neopixel_time != 0 && current_time > last_pixel_pulse + neopixel_time) {
-    pixel_index = (pixel_index + 1) & (PIXELS / 2) + 1;
+    pixel_index = ((pixel_index + 1) % (PIXELS / 2));
     last_pixel_pulse = current_time;
   }
-  
+
   if (direction == LEFT) {
-    for(int i = 0; i < PIXELS; i++) {
-      if(i > PIXELS / 2 - 1 - pixel_index && i < PIXELS / 2 - 1) {
+    for (int i = 0; i < PIXELS; i++) {
+      if ((i >= PIXELS / 2 - (pixel_index+1)) && (i < PIXELS / 2)) {
         neopixel.setPixelColor(i, neopixel.Color(ON_COLOR_R, ON_COLOR_G, ON_COLOR_B));
       } else {
         neopixel.setPixelColor(i, neopixel.Color(OFF_COLOR_R, OFF_COLOR_G, OFF_COLOR_B));
       }
     }
   } else if (direction == RIGHT) {
-    for(int i = 0; i < PIXELS; i++) {
-      if(i < PIXELS / 2 + pixel_index && i >= PIXELS / 2) {
+    for (int i = 0; i < PIXELS; i++) {
+      if ((i <= PIXELS / 2 + pixel_index) && (i >= PIXELS / 2)) {
         neopixel.setPixelColor(i, neopixel.Color(ON_COLOR_R, ON_COLOR_G, ON_COLOR_B));
       } else {
         neopixel.setPixelColor(i, neopixel.Color(OFF_COLOR_R, OFF_COLOR_G, OFF_COLOR_B));
       }
     }
   } else {
-    for(int i = 0; i < PIXELS; i++) {
+    for (int i = 0; i < PIXELS; i++) {
       neopixel.setPixelColor(i, neopixel.Color(OFF_COLOR_R, OFF_COLOR_G, OFF_COLOR_B));
     }
   }
